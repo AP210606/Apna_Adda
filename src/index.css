@@ -1,0 +1,148 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Custom Luxury & Geometric Color Mapping */
+  --color-luxury-gold: #D4AF37;
+  --color-luxury-gold-dark: #AA7C11;
+  --color-luxury-sand: #F7F5F0;
+  --color-luxury-sand-dark: #E6E1D5;
+  --color-luxury-onyx: #111111;
+  --color-luxury-charcoal: #1C1C1E;
+  --color-luxury-cashmere: #FAF9F6;
+
+  /* Smooth Custom Animations */
+  --animate-fade-in: fade-in 0.3s ease-out forwards;
+  --animate-slide-up: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-slide-down: slide-down 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-drawer-in: drawer-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-ripple: ripple 1.2s ease-out infinite;
+  --animate-rotate-slow: rotate-slow 20s linear infinite;
+  --animate-rotate-slow-reverse: rotate-slow-reverse 25s linear infinite;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slide-up {
+    from { transform: translateY(16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes slide-down {
+    from { transform: translateY(-16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes drawer-in {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+  @keyframes ripple {
+    0% { transform: scale(0.95); opacity: 0.5; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+    100% { transform: scale(0.95); opacity: 0.5; }
+  }
+  @keyframes rotate-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes rotate-slow-reverse {
+    from { transform: rotate(360deg); }
+    to { transform: rotate(0deg); }
+  }
+}
+
+/* Base Styles */
+@layer base {
+  html, body {
+    @apply h-full antialiased text-stone-900 bg-stone-50 selection:bg-stone-900 selection:text-white transition-colors duration-300;
+  }
+
+  body.dark {
+    @apply text-stone-100 bg-stone-950 selection:bg-stone-100 selection:text-stone-950;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight font-medium;
+  }
+
+  /* Fine custom scrollbars for luxury aesthetic */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-stone-300 rounded-full transition-colors hover:bg-stone-400;
+  }
+  body.dark ::-webkit-scrollbar-thumb {
+    @apply bg-stone-800 hover:bg-stone-700;
+  }
+}
+
+/* Reusable Glassmorphism and Luxury Containers */
+.glass-header {
+  @apply sticky top-0 z-40 backdrop-blur-md border-b border-stone-100 bg-white/90 transition-colors duration-300;
+}
+body.dark .glass-header {
+  @apply border-stone-900 bg-stone-950/80;
+}
+
+.luxury-card {
+  @apply rounded-none border border-stone-200/80 bg-white transition-all duration-500 overflow-hidden;
+}
+body.dark .luxury-card {
+  @apply border-stone-800 bg-stone-900;
+}
+
+.input-premium {
+  @apply w-full px-4 py-3 rounded-none border border-stone-200 bg-stone-50 text-stone-900 focus:outline-hidden focus:ring-1 focus:ring-stone-900 focus:border-stone-900 focus:bg-white placeholder:text-stone-400 transition-all duration-200 text-sm;
+}
+body.dark .input-premium {
+  @apply border-stone-800 bg-stone-900 text-stone-100 focus:ring-stone-100 focus:border-stone-100 focus:bg-stone-950 placeholder:text-stone-600;
+}
+
+.btn-premium-primary {
+  @apply relative inline-flex items-center justify-center px-8 py-4 font-bold text-xs uppercase tracking-[0.2em] text-stone-50 bg-stone-900 hover:bg-stone-800 focus:outline-hidden focus:ring-2 focus:ring-stone-900/40 active:scale-[0.97] transition-all duration-200 overflow-hidden cursor-pointer select-none disabled:opacity-50 disabled:pointer-events-none;
+}
+body.dark .btn-premium-primary {
+  @apply text-stone-900 bg-stone-50 hover:bg-stone-200 focus:ring-stone-50/40;
+}
+
+.btn-premium-secondary {
+  @apply inline-flex items-center justify-center px-8 py-4 font-bold text-xs uppercase tracking-[0.2em] text-stone-900 bg-white border border-stone-200 hover:bg-stone-50 hover:border-stone-300 focus:outline-hidden focus:ring-2 focus:ring-stone-200 active:scale-[0.97] transition-all duration-200 cursor-pointer select-none disabled:opacity-50 disabled:pointer-events-none;
+}
+body.dark .btn-premium-secondary {
+  @apply text-stone-100 bg-stone-900 border-stone-800 hover:bg-stone-800 hover:border-stone-700 focus:ring-stone-800;
+}
+
+/* Custom Geometric Accents matching Geometric Balance theme */
+.geometric-circle {
+  @apply aspect-square border border-stone-900/5 dark:border-white/5 rounded-full absolute pointer-events-none;
+}
+
+/* Line Clamp Utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
