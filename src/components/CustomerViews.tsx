@@ -765,10 +765,20 @@ export function VerifyEmailView() {
 // ==========================================
 
 export function AccountDashboardView() {
-  const { customer, logout, navigateTo, addToast, addToCart, cart, wishlist, toggleWishlist } = useAppStore();
+  const { customer, logout, navigateTo, addToast, addToCart, cart, wishlist, toggleWishlist, viewParams } = useAppStore();
   
   // Dashboard Sub-tabs
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'order-detail' | 'wishlist' | 'addresses' | 'profile' | 'settings' | 'coupons' | 'notifications' | 'support' | 'track-order'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'order-detail' | 'wishlist' | 'addresses' | 'profile' | 'settings' | 'coupons' | 'notifications' | 'support' | 'track-order'>(
+    viewParams.tab === 'orders' ? 'orders' : 'dashboard'
+  );
+
+  useEffect(() => {
+    if (viewParams.tab === 'orders') {
+      setActiveTab('orders');
+    } else if (viewParams.tab === 'dashboard') {
+      setActiveTab('dashboard');
+    }
+  }, [viewParams.tab]);
   
   // Sub-tab States loaded dynamically from customerService
   const [activeOrderId, setActiveOrderId] = useState<string | null>(null);

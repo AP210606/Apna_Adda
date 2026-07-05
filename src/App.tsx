@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation, useSearchParams, Link, NavLink } from 'react-router-dom';
 import { useAppStore } from './store/useAppStore';
 import SEO from './components/SEO';
 import { PRODUCTS } from './data/products';
@@ -61,6 +62,21 @@ import {
   Twitter,
 } from 'lucide-react';
 
+function NotFoundView() {
+  const { navigateTo } = useAppStore();
+  return (
+    <div className="max-w-4xl mx-auto px-6 py-24 text-center space-y-6">
+      <h1 className="text-4xl font-display font-medium tracking-tight">404 — OBJECT NOT FOUND</h1>
+      <p className="text-stone-500 max-w-md mx-auto text-sm leading-relaxed">
+        The curated design piece or directory you are seeking does not reside in our active collections.
+      </p>
+      <button onClick={() => navigateTo('shop')} className="btn-premium-primary text-[10px] px-8">
+        Back to Gallery
+      </button>
+    </div>
+  );
+}
+
 export default function App() {
   const {
     currentView,
@@ -74,6 +90,164 @@ export default function App() {
     setCartDrawerOpen,
     navigateTo,
   } = useAppStore();
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  // 1. Intercept useAppStore's navigateTo function to route cleanly
+  useEffect(() => {
+    useAppStore.setState({
+      navigateTo: (view, params = {}) => {
+        let path = '/';
+        switch (view) {
+          case 'home':
+            path = '/';
+            break;
+          case 'shop':
+            if (params.collection) {
+              path = `/collections/${params.collection}`;
+            } else if (params.query) {
+              path = `/shop?q=${encodeURIComponent(params.query)}`;
+            } else {
+              path = '/shop';
+            }
+            break;
+          case 'product':
+            path = `/product/${params.handle}`;
+            break;
+          case 'cart':
+            path = '/cart';
+            break;
+          case 'wishlist':
+            path = '/wishlist';
+            break;
+          case 'login':
+            path = '/account/login';
+            break;
+          case 'register':
+            path = '/account/register';
+            break;
+          case 'forgot-password':
+            path = '/account/forgot-password';
+            break;
+          case 'reset-password':
+            path = '/account/reset-password';
+            break;
+          case 'verify-email':
+            path = '/account/verify-email';
+            break;
+          case 'account':
+            path = '/account';
+            break;
+          case 'track-order':
+            path = '/track-order';
+            break;
+          case 'about':
+            path = '/about';
+            break;
+          case 'faq':
+            path = '/faq';
+            break;
+          case 'contact':
+            path = '/contact';
+            break;
+          case 'privacy':
+            path = '/privacy';
+            break;
+          case 'refund':
+            path = '/returns';
+            break;
+          case 'shipping':
+            path = '/shipping';
+            break;
+          case 'terms':
+            path = '/terms';
+            break;
+          case 'search':
+            if (params.query) {
+              path = `/shop?q=${encodeURIComponent(params.query)}`;
+            } else {
+              path = '/shop';
+            }
+            break;
+          default:
+            path = '/';
+        }
+        navigate(path);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+    });
+  }, [navigate]);
+
+  // 2. Synchronize route back to Zustand store (e.g. for browser navigation buttons: Back, Forward)
+  useEffect(() => {
+    const pathname = location.pathname;
+    let view = 'home';
+    let syncedParams: Record<string, any> = {};
+
+    if (pathname === '/') {
+      view = 'home';
+    } else if (pathname === '/shop' || pathname === '/search') {
+      view = 'shop';
+      const query = searchParams.get('q');
+      const collection = searchParams.get('collection');
+      if (query) syncedParams.query = query;
+      if (collection) syncedParams.collection = collection;
+    } else if (pathname.startsWith('/collections/')) {
+      view = 'shop';
+      const handle = pathname.split('/').pop() || '';
+      syncedParams.collection = handle;
+    } else if (pathname.startsWith('/product/')) {
+      view = 'product';
+      const handle = pathname.split('/').pop() || '';
+      syncedParams.handle = handle;
+    } else if (pathname === '/cart') {
+      view = 'cart';
+    } else if (pathname === '/wishlist') {
+      view = 'wishlist';
+    } else if (pathname === '/account') {
+      view = 'account';
+    } else if (pathname === '/orders') {
+      view = 'account';
+      syncedParams.tab = 'orders';
+    } else if (pathname === '/track-order') {
+      view = 'track-order';
+    } else if (pathname === '/about') {
+      view = 'about';
+    } else if (pathname === '/faq') {
+      view = 'faq';
+    } else if (pathname === '/contact') {
+      view = 'contact';
+    } else if (pathname === '/privacy') {
+      view = 'privacy';
+    } else if (pathname === '/terms') {
+      view = 'terms';
+    } else if (pathname === '/returns') {
+      view = 'refund';
+    } else if (pathname === '/shipping') {
+      view = 'shipping';
+    } else if (pathname === '/account/login') {
+      view = 'login';
+    } else if (pathname === '/account/register') {
+      view = 'register';
+    } else if (pathname === '/account/forgot-password') {
+      view = 'forgot-password';
+    } else if (pathname === '/account/reset-password') {
+      view = 'reset-password';
+    } else if (pathname === '/account/verify-email') {
+      view = 'verify-email';
+    } else {
+      // 404 view fallback
+      view = 'home';
+    }
+
+    // Only update state if it is actually different to avoid infinite loop
+    const state = useAppStore.getState();
+    if (state.currentView !== view || JSON.stringify(state.viewParams) !== JSON.stringify(syncedParams)) {
+      useAppStore.setState({ currentView: view as any, viewParams: syncedParams });
+    }
+  }, [location, searchParams]);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
@@ -104,124 +278,6 @@ export default function App() {
     { label: 'Help Desk', viewName: 'faq' as const },
     { label: 'Contact', viewName: 'contact' as const },
   ];
-
-  // Switcher core layout panels with Suspense boundaries and responsive skeletons
-  const renderView = () => {
-    switch (currentView) {
-      case 'home':
-        return <HomeView />;
-      case 'shop':
-        return (
-          <React.Suspense fallback={<ShopSkeleton />}>
-            <ShopView />
-          </React.Suspense>
-        );
-      case 'product':
-        return (
-          <React.Suspense fallback={<ProductSkeleton />}>
-            <ProductDetailView />
-          </React.Suspense>
-        );
-      case 'cart':
-        return (
-          <React.Suspense fallback={<PageSkeleton />}>
-            <CartView />
-          </React.Suspense>
-        );
-      case 'wishlist':
-        return (
-          <React.Suspense fallback={<PageSkeleton />}>
-            <WishlistView />
-          </React.Suspense>
-        );
-      case 'login':
-        return (
-          <React.Suspense fallback={<PageSkeleton />}>
-            <LoginView />
-          </React.Suspense>
-        );
-      case 'register':
-        return (
-          <React.Suspense fallback={<PageSkeleton />}>
-            <RegisterView />
-          </React.Suspense>
-        );
-      case 'forgot-password':
-        return (
-          <React.Suspense fallback={<PageSkeleton />}>
-            <ForgotPasswordView />
-          </React.Suspense>
-        );
-      case 'reset-password':
-        return (
-          <React.Suspense fallback={<PageSkeleton />}>
-            <ResetPasswordView />
-          </React.Suspense>
-        );
-      case 'verify-email':
-        return (
-          <React.Suspense fallback={<PageSkeleton />}>
-            <VerifyEmailView />
-          </React.Suspense>
-        );
-      case 'account':
-        return (
-          <React.Suspense fallback={<PageSkeleton />}>
-            <AccountDashboardView />
-          </React.Suspense>
-        );
-      case 'track-order':
-        return (
-          <React.Suspense fallback={<PageSkeleton />}>
-            <TrackOrderView />
-          </React.Suspense>
-        );
-      case 'about':
-        return (
-          <React.Suspense fallback={<PageSkeleton />}>
-            <AboutView />
-          </React.Suspense>
-        );
-      case 'faq':
-        return (
-          <React.Suspense fallback={<PageSkeleton />}>
-            <FAQView />
-          </React.Suspense>
-        );
-      case 'contact':
-        return (
-          <React.Suspense fallback={<PageSkeleton />}>
-            <ContactView />
-          </React.Suspense>
-        );
-      case 'privacy':
-        return (
-          <React.Suspense fallback={<PageSkeleton />}>
-            <PrivacyPolicyView />
-          </React.Suspense>
-        );
-      case 'refund':
-        return (
-          <React.Suspense fallback={<PageSkeleton />}>
-            <RefundPolicyView />
-          </React.Suspense>
-        );
-      case 'shipping':
-        return (
-          <React.Suspense fallback={<PageSkeleton />}>
-            <ShippingPolicyView />
-          </React.Suspense>
-        );
-      case 'terms':
-        return (
-          <React.Suspense fallback={<PageSkeleton />}>
-            <TermsView />
-          </React.Suspense>
-        );
-      default:
-        return <HomeView />;
-    }
-  };
 
   // Dynamic SEO parameters construction based on current view panel
   let seoTitle = '';
@@ -341,8 +397,8 @@ export default function App() {
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-stone-950/80 backdrop-blur-md border-b border-stone-200 dark:border-stone-900 h-16 flex items-center justify-between px-6 sm:px-10 transition-colors">
         
         {/* Brand Logo with tracking */}
-        <div
-          onClick={() => navigateTo('home')}
+        <Link
+          to="/"
           className="flex items-center gap-2 cursor-pointer font-display select-none"
         >
           <div className="w-7 h-7 bg-stone-950 dark:bg-white rounded-none flex items-center justify-center relative overflow-hidden group">
@@ -350,20 +406,20 @@ export default function App() {
             <div className="absolute inset-0 border border-stone-100 opacity-20 pointer-events-none"></div>
           </div>
           <span className="text-sm font-black uppercase tracking-[0.3em] text-stone-950 dark:text-white">APNA ADDA</span>
-        </div>
+        </Link>
 
         {/* Desktop links */}
         <nav className="hidden lg:flex items-center gap-8">
           {navLinks.map((link) => (
-            <button
+            <Link
               key={link.viewName}
-              onClick={() => navigateTo(link.viewName)}
+              to={`/${link.viewName}`}
               className={`text-xs uppercase tracking-widest font-mono cursor-pointer transition-colors hover:text-luxury-gold ${
                 currentView === link.viewName ? 'font-bold text-stone-950 dark:text-white' : 'text-stone-500'
               }`}
             >
               {link.label}
-            </button>
+            </Link>
           ))}
         </nav>
 
@@ -391,21 +447,21 @@ export default function App() {
           </button>
 
           {/* Account link */}
-          <button
+          <Link
             id="btn-nav-account"
-            onClick={() => navigateTo(customer ? 'account' : 'login')}
+            to={customer ? '/account' : '/account/login'}
             className={`p-2 text-stone-500 hover:text-stone-950 dark:text-stone-400 dark:hover:text-white transition-colors cursor-pointer ${
               currentView === 'account' || currentView === 'login' ? 'text-luxury-gold' : ''
             }`}
             aria-label="Your profile"
           >
             <User className="w-4.5 h-4.5" />
-          </button>
+          </Link>
 
           {/* Wishlist Link */}
-          <button
+          <Link
             id="btn-nav-wishlist"
-            onClick={() => navigateTo('wishlist')}
+            to="/wishlist"
             className="p-2 text-stone-500 hover:text-stone-950 dark:text-stone-400 dark:hover:text-white transition-colors cursor-pointer relative"
             aria-label="Saved items"
           >
@@ -415,7 +471,7 @@ export default function App() {
                 {wishlistCount}
               </span>
             )}
-          </button>
+          </Link>
 
           {/* Dynamic Cart Sidemenu Trigger */}
           <button
@@ -465,7 +521,113 @@ export default function App() {
 
       {/* 4. MAIN CENTRAL CONTENT CHANGER */}
       <main id="main-content" className="flex-grow">
-        {renderView()}
+        <Routes>
+          <Route path="/" element={<HomeView />} />
+          <Route path="/shop" element={
+            <React.Suspense fallback={<ShopSkeleton />}>
+              <ShopView />
+            </React.Suspense>
+          } />
+          <Route path="/collections/:handle" element={
+            <React.Suspense fallback={<ShopSkeleton />}>
+              <ShopView />
+            </React.Suspense>
+          } />
+          <Route path="/product/:handle" element={
+            <React.Suspense fallback={<ProductSkeleton />}>
+              <ProductDetailView />
+            </React.Suspense>
+          } />
+          <Route path="/cart" element={
+            <React.Suspense fallback={<PageSkeleton />}>
+              <CartView />
+            </React.Suspense>
+          } />
+          <Route path="/wishlist" element={
+            <React.Suspense fallback={<PageSkeleton />}>
+              <WishlistView />
+            </React.Suspense>
+          } />
+          <Route path="/account" element={
+            <React.Suspense fallback={<PageSkeleton />}>
+              <AccountDashboardView />
+            </React.Suspense>
+          } />
+          <Route path="/orders" element={
+            <React.Suspense fallback={<PageSkeleton />}>
+              <AccountDashboardView />
+            </React.Suspense>
+          } />
+          <Route path="/track-order" element={
+            <React.Suspense fallback={<PageSkeleton />}>
+              <TrackOrderView />
+            </React.Suspense>
+          } />
+          <Route path="/search" element={
+            <React.Suspense fallback={<ShopSkeleton />}>
+              <ShopView />
+            </React.Suspense>
+          } />
+          <Route path="/about" element={
+            <React.Suspense fallback={<PageSkeleton />}>
+              <AboutView />
+            </React.Suspense>
+          } />
+          <Route path="/contact" element={
+            <React.Suspense fallback={<PageSkeleton />}>
+              <ContactView />
+            </React.Suspense>
+          } />
+          <Route path="/privacy" element={
+            <React.Suspense fallback={<PageSkeleton />}>
+              <PrivacyPolicyView />
+            </React.Suspense>
+          } />
+          <Route path="/terms" element={
+            <React.Suspense fallback={<PageSkeleton />}>
+              <TermsView />
+            </React.Suspense>
+          } />
+          <Route path="/returns" element={
+            <React.Suspense fallback={<PageSkeleton />}>
+              <RefundPolicyView />
+            </React.Suspense>
+          } />
+          <Route path="/shipping" element={
+            <React.Suspense fallback={<PageSkeleton />}>
+              <ShippingPolicyView />
+            </React.Suspense>
+          } />
+          
+          {/* Auth Views */}
+          <Route path="/account/login" element={
+            <React.Suspense fallback={<PageSkeleton />}>
+              <LoginView />
+            </React.Suspense>
+          } />
+          <Route path="/account/register" element={
+            <React.Suspense fallback={<PageSkeleton />}>
+              <RegisterView />
+            </React.Suspense>
+          } />
+          <Route path="/account/forgot-password" element={
+            <React.Suspense fallback={<PageSkeleton />}>
+              <ForgotPasswordView />
+            </React.Suspense>
+          } />
+          <Route path="/account/reset-password" element={
+            <React.Suspense fallback={<PageSkeleton />}>
+              <ResetPasswordView />
+            </React.Suspense>
+          } />
+          <Route path="/account/verify-email" element={
+            <React.Suspense fallback={<PageSkeleton />}>
+              <VerifyEmailView />
+            </React.Suspense>
+          } />
+          
+          <Route path="*" element={<NotFoundView />} />
+        </Routes>
       </main>
 
       {/* 5. FOOTER */}
