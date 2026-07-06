@@ -1,4 +1,3 @@
-<img width="1919" height="998" alt="image" src="https://github.com/user-attachments/assets/6690788e-9572-41c9-8345-8129471ee369" /><div align="center">
 <img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
 </div>
 
